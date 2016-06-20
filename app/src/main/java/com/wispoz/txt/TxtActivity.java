@@ -14,8 +14,19 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
+import com.wispoz.txt.services.ApiService;
+import com.wispoz.txt.services.ApiService.RestApi;
 import com.wispoz.txt.views.artists.ArtistsView;
+
+import java.io.IOException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TxtActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -93,10 +104,33 @@ public class TxtActivity extends AppCompatActivity
             ft.replace(R.id.mainFrame, fragment);
             ft.commit();
         } else if (id == R.id.nav_slideshow) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(ApiService.API_URL)
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+            RestApi service = retrofit.create(RestApi.class);
+            Call<RestApi> call = service.getArtistsList();
 
-        } else if (id == R.id.nav_manage) {
+            // Asynchronously execute HTTP request
+            call.enqueue(new Callback<RestApi>() {
+                @Override
+                public void onResponse(Call<RestApi> call, Response<RestApi> response) {
+                    System.out.println("Response status code: " + response.code());
+                    Toast.makeText(getApplicationContext(),response.code(),Toast.LENGTH_LONG);
+                }
 
-        } else if (id == R.id.nav_share) {
+                @Override
+                public void onFailure(Call<RestApi> call, Throwable t) {
+                    t.getMessage();
+                    Toast.makeText(getBaseContext(),"failure",Toast.LENGTH_LONG);
+                }
+
+                /**
+                 * onResponse is called when any kind of response has been received.
+                 */
+
+            });
+        }  else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
 
