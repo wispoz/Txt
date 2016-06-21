@@ -13,29 +13,10 @@ import retrofit2.http.Headers;
  */
 public class ApiService {
     public static final String API_URL = "http://api.wispoz.com";
-    static class HttpBinResponse {
-        // the request url
-        String url;
-
-        // the requester ip
-        String origin;
-
-        // all headers that have been sent
-        Map headers;
-
-        // url arguments
-        Map args;
-
-        // post form parameters
-        Map form;
-
-        // post body json
-        Map json;
-    }
 
     public interface RestApi {
         @Headers( "Content-Type: application/json" )
         @GET("/artists/")
-        Call<RestApi> getArtistsList();
+        Call<JSONResponse> getJSON();
     }
 }

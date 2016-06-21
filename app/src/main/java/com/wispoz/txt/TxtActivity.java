@@ -5,6 +5,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,11 +17,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.wispoz.txt.models.ArtistsAdapter;
 import com.wispoz.txt.services.ApiService;
 import com.wispoz.txt.services.ApiService.RestApi;
+import com.wispoz.txt.services.JSONResponse;
 import com.wispoz.txt.views.artists.ArtistsView;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -103,33 +108,11 @@ public class TxtActivity extends AppCompatActivity
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
             ft.replace(R.id.mainFrame, fragment);
             ft.commit();
+
+
         } else if (id == R.id.nav_slideshow) {
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(ApiService.API_URL)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build();
-            RestApi service = retrofit.create(RestApi.class);
-            Call<RestApi> call = service.getArtistsList();
 
-            // Asynchronously execute HTTP request
-            call.enqueue(new Callback<RestApi>() {
-                @Override
-                public void onResponse(Call<RestApi> call, Response<RestApi> response) {
-                    System.out.println("Response status code: " + response.code());
-                    Toast.makeText(getApplicationContext(),response.code(),Toast.LENGTH_LONG);
-                }
 
-                @Override
-                public void onFailure(Call<RestApi> call, Throwable t) {
-                    t.getMessage();
-                    Toast.makeText(getBaseContext(),"failure",Toast.LENGTH_LONG);
-                }
-
-                /**
-                 * onResponse is called when any kind of response has been received.
-                 */
-
-            });
         }  else if (id == R.id.nav_share) {
 
         } else if (id == R.id.nav_send) {
@@ -139,5 +122,35 @@ public class TxtActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    private void
+    loadJSON() {
+
+        Retrofit retrofit = new Retrofit.Builder()
+                        .baseUrl("http://api.learn2crack.com")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build();
+        ApiService request = retrofit.create(ApiService.class);
+
+        Call<JSONResponse> call = request.getJSON();
+
+        call.enqueue(new Callback<JSONResponse>() {
+            @Override
+                            public void
+                            onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
+                                JSONResponse jsonResponse = response.body();
+                                data = new ArrayList<>(Arrays.asList(jsonResponse.getArtist()));
+                                adapter =  new ArtistsAdapter(data);
+                                recyclerView.setAdapter(adapter);
+                            }
+                            @Override
+                            public void
+                            onFailure(Call<JSONResponse> call, Throwable t) {
+                                Log.d("Error", t.getMessage());
+                            }
+                        });
+
     }
 }
