@@ -19,7 +19,9 @@ public class ArtistsAdapter extends RecyclerView.Adapter<ArtistsAdapter.ViewHold
     public ArtistsAdapter(ArrayList<Artists> artist) {
         this.artist = artist;
     }
-
+    public ArrayList<Artists> getArtist(){
+        return artist;
+    }
     @Override
     public ArtistsAdapter.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.artists_row, viewGroup, false);

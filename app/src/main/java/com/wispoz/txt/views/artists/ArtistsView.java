@@ -39,7 +39,8 @@ public class ArtistsView extends Fragment {
     private int previousTotal = 0;
     private boolean loading = true;
     private int visibleThreshold = 20;
-    int firstVisibleItem, visibleItemCount, totalItemCount;
+    int firstVisibleItem,lastVisibleItem, visibleItemCount, totalItemCount;
+    int currentPage,totalPages,nextPage;
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.artists, container, false);
@@ -48,54 +49,29 @@ public class ArtistsView extends Fragment {
         recyclerView.setHasFixedSize(true);
         layoutManager =  new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
-        /*
+
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
 
             @Override
             public void onScrolled(RecyclerView recyclerViews, int dx, int dy) {
                 super.onScrolled(recyclerViews, dx, dy);
-
                 visibleItemCount = recyclerViews.getChildCount();
                 totalItemCount = layoutManager.getItemCount();
                 firstVisibleItem = layoutManager.findFirstVisibleItemPosition();
-
+                lastVisibleItem = layoutManager.findLastCompletelyVisibleItemPosition();
                 if (loading) {
                     if (totalItemCount > previousTotal) {
                         loading = false;
                         previousTotal = totalItemCount;
                     }
                 }
-                if (!loading && (totalItemCount - visibleItemCount)
-                        <= (firstVisibleItem + visibleThreshold)) {
-                    // End has been reached
-                    Log.i("Yaeye!", "end called");
-
-                    Retrofit retrofit = new Retrofit.Builder()
-                            .baseUrl(ApiService.API_URL)
-                            .addConverterFactory(GsonConverterFactory.create())
-                            .build();
-                    ApiService.RestApi request = retrofit.create(ApiService.RestApi.class);
-                    Call<JSONResponse> call = request.getMore(2);
-                    call.enqueue(new Callback<JSONResponse>() {
-                        @Override
-                        public void  onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
-                            JSONResponse jsonResponse = response.body();
-                            data = new ArrayList<>(Arrays.asList(jsonResponse.getArtist()));
-                            adapter =  new ArtistsAdapter(data);
-                            recyclerView.setAdapter(adapter);
-
-                        }
-                        @Override
-                        public void onFailure(Call<JSONResponse> call, Throwable t) {
-                            Log.d("Error", t.getMessage());
-                        }
-                    });
-
-                    loading = true;
+                Log.d("recycleView loading",Boolean.toString(loading));
+                if (!loading && (lastVisibleItem + 1) == visibleThreshold) {
+                    loadMore(nextPage);
                 }
             }
         });
-        */
+
         loadJSON();
         return rootView;
     }
@@ -112,8 +88,9 @@ public class ArtistsView extends Fragment {
             public void  onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
                 JSONResponse jsonResponse = response.body();
                 Headers headers = response.headers();
-                String currentPage = headers.get("X-Pagination-Current-Page");
-                String totalPages = headers.get("X-Pagination-Page-Count");
+                currentPage = Integer.parseInt(headers.get("X-Pagination-Current-Page"));
+                nextPage = currentPage + 1;
+                totalPages =  Integer.parseInt(headers.get("X-Pagination-Page-Count"));
                 data = new ArrayList<>(Arrays.asList(jsonResponse.getArtist()));
                 adapter =  new ArtistsAdapter(data);
                 recyclerView.setAdapter(adapter);
@@ -124,6 +101,33 @@ public class ArtistsView extends Fragment {
                 Log.d("Error", t.getMessage());
             }
         });
+    }
+    private void loadMore(int page) {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(ApiService.API_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        ApiService.RestApi request = retrofit.create(ApiService.RestApi.class);
+        Call<JSONResponse> call = request.getMore(page);
+        call.enqueue(new Callback<JSONResponse>() {
+            @Override
+            public void  onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
+                JSONResponse jsonResponse = response.body();
+                Headers headers = response.headers();
+                currentPage = Integer.parseInt(headers.get("X-Pagination-Current-Page"));
+                totalPages =  Integer.parseInt(headers.get("X-Pagination-Page-Count"));
+                nextPage = currentPage + 1;
+                data = new ArrayList<>(Arrays.asList(jsonResponse.getArtist()));
+                adapter.getArtist().addAll(data);
+                adapter.notifyDataSetChanged();
+            }
+            @Override
+            public void onFailure(Call<JSONResponse> call, Throwable t) {
+                Log.d("Error", t.getMessage());
+            }
+        });
+
+        loading = true;
     }
 
 }
