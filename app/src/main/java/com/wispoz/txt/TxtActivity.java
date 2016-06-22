@@ -5,6 +5,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -17,6 +19,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.wispoz.txt.models.Artists;
 import com.wispoz.txt.models.ArtistsAdapter;
 import com.wispoz.txt.services.ApiService;
 import com.wispoz.txt.services.ApiService.RestApi;
@@ -35,6 +38,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class TxtActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private RecyclerView recyclerView;
+    private ArrayList<Artists> data;
+    private ArtistsAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,6 +116,7 @@ public class TxtActivity extends AppCompatActivity
             ft.replace(R.id.mainFrame, fragment);
             ft.commit();
 
+          //  loadJSON();
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -125,32 +133,5 @@ public class TxtActivity extends AppCompatActivity
     }
 
 
-    private void
-    loadJSON() {
 
-        Retrofit retrofit = new Retrofit.Builder()
-                        .baseUrl("http://api.learn2crack.com")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
-        ApiService request = retrofit.create(ApiService.class);
-
-        Call<JSONResponse> call = request.getJSON();
-
-        call.enqueue(new Callback<JSONResponse>() {
-            @Override
-                            public void
-                            onResponse(Call<JSONResponse> call, Response<JSONResponse> response) {
-                                JSONResponse jsonResponse = response.body();
-                                data = new ArrayList<>(Arrays.asList(jsonResponse.getArtist()));
-                                adapter =  new ArtistsAdapter(data);
-                                recyclerView.setAdapter(adapter);
-                            }
-                            @Override
-                            public void
-                            onFailure(Call<JSONResponse> call, Throwable t) {
-                                Log.d("Error", t.getMessage());
-                            }
-                        });
-
-    }
 }
