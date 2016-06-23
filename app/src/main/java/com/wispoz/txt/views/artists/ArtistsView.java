@@ -65,17 +65,15 @@ public class ArtistsView extends Fragment {
                         previousTotal = totalItemCount;
                     }
                 }
-                Log.d("recycleView loading",Boolean.toString(loading));
-                if (!loading && (lastVisibleItem + 1) == visibleThreshold) {
+                if (!loading && (lastVisibleItem + 1) == totalItemCount) {
                     loadMore(nextPage);
+                    loading = true;
                 }
             }
         });
-
         loadJSON();
         return rootView;
     }
-
     private void loadJSON() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(ApiService.API_URL)
